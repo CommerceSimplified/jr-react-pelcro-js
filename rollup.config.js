@@ -14,23 +14,10 @@ import path from "path";
 export default [
   {
     input: "src/components.js",
-    // outpu: {
-    //   dir: "dist",
-    //   inlineDynamicImports: true
-    // },
-    // output: [
-    //   { dir: "dist", format: "cjs", inlineDynamicImports: false }
-    // ],
-    output: [
-      {
-        dir: "dist",
-        inlineDynamicImports: false
-      },
-      {
-        dir: "dist",
-        inlineDynamicImports: false
-      }
-    ],
+    output: {
+      dir: "dist",
+      format: "esm"
+    },
     plugins: [
       url(),
       svgr({
