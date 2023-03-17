@@ -95,15 +95,9 @@ export function SubscriptionManageMembersList(props) {
             className="plc-truncate plc-text-left"
             title={member?.invitation_email}
           >
-            {member.status === "active" ? (
-              <span className="plc-font-semibold plc-text-gray-500">
-                {member?.customer?.email}
-              </span>
-            ) : (
-              <span className="plc-font-semibold plc-text-gray-500">
-                {member?.invitation_email}
-              </span>
-            )}
+            <span className="plc-font-semibold plc-text-gray-500">
+              {member?.invitation_email}
+            </span>
           </td>
           <td className="plc-py-2">
             {/* Pill */}
