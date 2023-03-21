@@ -118,6 +118,9 @@ const PaymentMethodContainerWithoutStripe = ({
   onFailure = () => {},
   ...props
 }) => {
+  const [vantivPaymentRequest, setVantivPaymentRequest] =
+    useState(null);
+  const [updatedCouponCode, setUpdatedCouponCode] = useState("");
   const { t } = useTranslation("payment");
   const pelcroStore = usePelcro();
   const { set, order, selectedPaymentMethodId, couponCode } =
@@ -537,16 +540,13 @@ const PaymentMethodContainerWithoutStripe = ({
     /*     
     calls handleVantivPayment to either handle a payment or update a source by simply creating a new source 
     */
-    handleVantivPayment(
-      vantivInstanceRef.current.getPaypageRegistrationId({
-        id: orderId,
-        orderId: orderId
-      }),
-      state
-    );
+    vantivInstanceRef.current.getPaypageRegistrationId({
+      id: orderId,
+      orderId: orderId
+    });
   };
 
-  function handleVantivPayment(paymentRequest, state) {
+  function handleVantivPayment(paymentRequest, couponCode) {
     if (paymentRequest) {
       const SUCCESS_STATUS = "870";
       if (paymentRequest.response !== SUCCESS_STATUS) {
@@ -631,8 +631,6 @@ const PaymentMethodContainerWithoutStripe = ({
       const giftSubscriprition = isGift && !subscriptionIdToRenew;
       const renewGift = isRenewingGift;
 
-      const { couponCode } = state;
-
       if (renewGift) {
         return payment.execute(
           {
@@ -716,6 +714,7 @@ const PaymentMethodContainerWithoutStripe = ({
             if (err) {
               return handlePaymentError(err);
             }
+
             onSuccess(res);
           }
         );
@@ -744,7 +743,8 @@ const PaymentMethodContainerWithoutStripe = ({
         height: "245",
         timeout: 50000,
         div: "eProtectiframe",
-        callback: handleVantivPayment,
+        callback: (paymentRequest) =>
+          setVantivPaymentRequest(paymentRequest),
         showCvv: true,
         numYears: 8,
         placeholderText: {
@@ -759,6 +759,13 @@ const PaymentMethodContainerWithoutStripe = ({
       });
     }
   }, [selectedPaymentMethodId]);
+
+  //Trigger the handleVantivPayment method when a vantivePaymentRequest is present
+  useEffect(() => {
+    if (vantivPaymentRequest) {
+      handleVantivPayment(vantivPaymentRequest, updatedCouponCode);
+    }
+  }, [vantivPaymentRequest]);
 
   useEffect(() => {
     whenUserReady(() => {
@@ -889,6 +896,9 @@ const PaymentMethodContainerWithoutStripe = ({
       if (err) {
         onFailure(err);
 
+        //reset the coupon code in local state
+        setUpdatedCouponCode("");
+
         dispatch({
           type: SET_COUPON_ERROR,
           payload: getErrorMessages(err)
@@ -945,6 +955,9 @@ const PaymentMethodContainerWithoutStripe = ({
         type: SET_COUPON,
         payload: res.data.coupon
       });
+
+      //set the coupon code in local state to be able to use with Vantiv
+      setUpdatedCouponCode(res.data.coupon.code);
 
       dispatch({
         type: SET_PERCENT_OFF,
@@ -1030,6 +1043,9 @@ const PaymentMethodContainerWithoutStripe = ({
 
   const removeAppliedCoupon = (state) => {
     state.couponCode = "";
+
+    //reset the coupon code in local state
+    setUpdatedCouponCode("");
 
     dispatch({ type: SET_COUPON_ERROR, payload: "" });
 
